@@ -1,7 +1,6 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-import ipdb
 
 
 class SelfAttention(nn.Module):
@@ -69,7 +68,7 @@ class TransformerBlock(nn.Module):
 
     def forward(self, x):
         attended = self.attention(x)
-        x = self.norm1(attended + x)  # TODO: explain skip connection
+        x = self.norm1(attended + x)
         x = self.droput(x)
         feedforward = self.fc(x)
         x = self.norm2(feedforward + x)
