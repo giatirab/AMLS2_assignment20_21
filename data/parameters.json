@@ -1,0 +1,17 @@
+{
+    "lr": 0.0001,
+    "lr_warmup": 10,
+    "batch_size": 20,
+    "test_batch_size": 1000,
+    "log_step": 80000,
+    "epochs": 8,
+    "gradient_clipping": 1.0,
+    "heads": 3,
+    "depth": 3,
+    "embedding_dim": 128,
+    "output_dropout": 0.1,
+    "block_dropout": 0.2,
+    "max_tweet_len": 119,
+    "model_name":""
+}
+
