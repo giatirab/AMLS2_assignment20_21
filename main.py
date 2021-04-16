@@ -13,7 +13,7 @@ import json
 import spacy
 from collections import (
     Counter,
-)  # oggetto che data una lista calcola le frequenze degli oggetti in essa contenuti
+)  # object that given a list returns the frequency of contained objects
 import itertools
 import numpy as np
 import random
@@ -23,6 +23,19 @@ from modules import Transformer
 
 
 class TrasformerManager:
+    """
+    Defines the main steps of the NLP tweet classification program, from preprocessing of input dataset, 
+    to training, testing and classfication.
+       
+       - PREPROCESSING: Loads a 1.6 million dataset of tweets and returns a locally saved ...
+           
+       - TRAIN: 
+           
+       - TEST:
+           
+       - CLASSIFY: 
+           
+    """
     def __init__(self):
         self.tokenize = spacy.load("en_core_web_sm").tokenizer
 
@@ -213,18 +226,21 @@ class TrasformerManager:
         )
 
     def _test(self, epoch, data_iter):
-        with torch.no_grad():
-            self.model.eval()
+        with torch.no_grad(): # deactivate gradients computation
+            self.model.eval() # set model to test mode, not train mode anymore
             tot_loss = 0.0
             correct_count = torch.zeros(self.num_labels, 2)
             dataset_size = 0
             for batch in data_iter:
                 labels = batch.label[0] - 2
                 output = self.model(batch.tweet)
+                # TODO - rows below CPU?
                 predicted_labels = output.max(dim=1).indices.cpu()
+                # TODO - this is to count the ones got correct. What is syntax below
                 for i, label in enumerate(labels.cpu()):
                     correct_count[label][0] += predicted_labels[i] == label
                     correct_count[label][1] += 1
+                # TODO - Functional layer?
                 loss = F.nll_loss(output, labels)
                 tot_loss += loss.item()
                 dataset_size += len(batch)
@@ -237,30 +253,35 @@ class TrasformerManager:
                 )
                 / self.num_labels
             ).item()
+            # TODO - rows below? 
             if avg_rec > self.avg_rec[1]:
                 self.avg_rec = (epoch, avg_rec)
             test_loss = tot_loss / dataset_size
         return test_loss, avg_rec
 
     def classify(self, tweet):
+        """Processes an input tweet of string format and pre-processes it (while storing the set of tokens
+           not in the trained vocabulary). Following this stage it classifies the sentiment expressed within 
+           the tweet. Also returns confidence attached to its classfication based on log_softmax output vector."""
         # ipdb.set_trace()
-        with torch.no_grad():
-            self.model.eval()
+        with torch.no_grad(): # deactivate gradient calculations in the network
+            self.model.eval() # set model to evaluation (test) mode
             full_tokens = [
                 token.text.lower() for token in self.tokenize(tweet)
             ]
             tokens = [token for token in full_tokens if token in self.vocab]
             not_known = [token for token in full_tokens if token not in tokens]
             if len(not_known) > 0:
-                print(f"Unknown words: {not_known}")
+                print(f"Unknown words: {not_known}") # prints the words that are not in the 20k summary English dictionary
             token_indexes = [self.text_field.vocab[token] for token in tokens]
             token_indexes = torch.unsqueeze(
                 torch.tensor(token_indexes, dtype=torch.long), 0
             )
             output = self.model(token_indexes.to(self.device))[0]
+            # TODO - Perche sopra linea 238 output.max(dim=1)?
             predicted_label_index = output.max(dim=0).indices.item()
             index_to_label = {
-                val: key for key, val in self.label_field.vocab.stoi.items()
+                val: key for key, val in self.label_field.vocab.stoi.items() # TODO - stoi??
             }
             print(
                 f"Confidence: {round(100*torch.exp(output[predicted_label_index]).item(),1)}%"
@@ -272,8 +293,10 @@ class TrasformerManager:
             )
 
     def preprocess(self):
+        
         print("Preprocessing started")
-
+        # Load raw .csv file and start basic data manipulation, including
+        # train_test_split
         df = pd.read_csv(
             "data/training.1600000.processed.noemoticon.csv.gz",
             encoding="ISO-8859-1",
@@ -282,13 +305,14 @@ class TrasformerManager:
         df = df.drop(columns=["date", "unknown", "author", "id"])
         df = df.reindex(columns=["label", "tweet"])
         indexes = list(range(len(df)))
-        random.shuffle(indexes)
+        random.shuffle(indexes) # labels are ordered
         split_index = int(np.floor(len(df) / 10))
         test_df = df.loc[indexes[:split_index]]
         train_df = df.loc[indexes[split_index:]]
+        # Let's tokenize each tweet in the train and test dataset
         train_tweets_tokens = tuple(
             tuple(token.text.lower() for token in self.tokenize(tweet))
-            for tweet in tqdm(train_df["tweet"])
+            for tweet in tqdm(train_df["tweet"]) 
         )
         test_tweets_tokens = tuple(
             tuple(token.text.lower() for token in self.tokenize(tweet))
@@ -296,11 +320,15 @@ class TrasformerManager:
         )
 
         print("Tokenization complete")
+        # Get most common words (2000) in train dataset and save them in .json file
+        # The aim is to reduce the vocabulary size
+        # Going to generate the vocabulary
         counter = Counter(itertools.chain(*train_tweets_tokens))
         common_words = [item[0] for item in counter.most_common(20000)]
         with open("data/words.json") as f:
             json.dump(common_words, f)
         common_words = set(common_words)
+        #
         simplified_train_tweets = tuple(
             " ".join(tuple(token for token in tokens if token in common_words))
             for tokens in tqdm(train_tweets_tokens)
@@ -310,11 +338,15 @@ class TrasformerManager:
             for tokens in tqdm(test_tweets_tokens)
         )
         print("Extracted simplified tweets, saving...")
+        # Sovrascrivo la colonna "tweet" nei 2 dataframe con i simplified tweets
+        # Now saving the proprocessed train and test sets into .csvs
         test_df = test_df.assign(tweet=simplified_test_tweets)
         train_df = train_df.assign(tweet=simplified_train_tweets)
+        # Il tabular dataset utilizza i .csv
         train_df.to_csv("data/train_dataset.csv", index=False)
         test_df.to_csv("data/test_dataset.csv", index=False)
         print("Generating vocabulary")
+        # Pytorch needs to create its token-integer mapping/voculary using the simplified tweets
         train_dataset, test_dataset = data.TabularDataset.splits(
             "data",
             train="train_dataset.csv",
@@ -325,7 +357,9 @@ class TrasformerManager:
         )
         self.label_field.build_vocab(train_dataset)
         self.text_field.build_vocab(train_dataset)
-        print("Computing max len")
+        print("Computing max length")
+        # CI costruiamo gli 2 embedding in base a questa man length quindi ci serve saperlo.
+        # Per inizializzare una matrice più grande.
         max_tweet_len = 0
         for name in (train_dataset, test_dataset):
             for i in range(len(name)):
@@ -339,7 +373,8 @@ class TrasformerManager:
         print("Saving fields and parameters")
         with open("data/parameters.json", "w") as f:
             json.dump(parameters, f)
-
+            
+        # salvare con dill library, contiene funzione lambda un come tokenizzare, pickle non riesce a salvarsi funzioni
         with open("models/label_field.pt", "wb") as f:
             dill.dump(self.label_field, f)
         with open("models/text_field.pt", "wb") as f:
@@ -347,14 +382,21 @@ class TrasformerManager:
 
         print("Compressing CSVs")
         for name in ("train", "test"):
+            # aprimi il .csv che ti sei salvato sopra in formato lettura
             with open(f"data/{name}_dataset.csv", "rb") as f_in:
+                # aprimi (crea se non esiste) il file compresso in formato write
                 with gzip.open(f"data/{name}_dataset.csv.gz", "wb") as f_out:
+                    # copia da .csv in .csv compresso
                     f_out.writelines(f_in)
+            # cancella file non compresso
             os.remove(f"data/{name}_dataset.csv")
         print("Done preprocessing")
 
 
 def main():
+    """Runs the program using the TransformerManager class, performs pre-processing on the input dataset of tweets
+       and launches training and testing of model. After training, a list of tweets will be classified to verify the 
+       program is performing as expected."""
     tm = TrasformerManager()
     # tm.preprocess()
     # tm.train()

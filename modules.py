@@ -4,6 +4,9 @@ import torch.nn.functional as F
 
 
 class SelfAttention(nn.Module):
+    """
+    Defines the multi-headed self attention mechanism using key, queries and values matrices.
+    """
     def __init__(self, embedding_dim, heads):
         super().__init__()
         self.embedding_dim = embedding_dim
@@ -15,13 +18,13 @@ class SelfAttention(nn.Module):
 
     def forward(self, x):
         batch_size, tweet_length, embedding_dim = x.size()
+        
         keys = self.to_keys(x).view(batch_size, tweet_length, self.heads, embedding_dim)
-        queries = self.to_queries(x).view(
-            batch_size, tweet_length, self.heads, embedding_dim
-        )
-        values = self.to_values(x).view(
-            batch_size, tweet_length, self.heads, embedding_dim
-        )
+        queries = self.to_queries(x).view(batch_size, tweet_length, self.heads, embedding_dim)
+        values = self.to_values(x).view(batch_size, tweet_length, self.heads, embedding_dim)
+        
+        # .view() performs a tensor reshape. If you have already performed a
+        # transpose operation, Pytorch needs a .contiguos() before the reshape
         keys = (
             keys.transpose(1, 2)
             .contiguous()
@@ -54,6 +57,11 @@ class SelfAttention(nn.Module):
 
 
 class TransformerBlock(nn.Module):
+    """
+    Defines the forward network structure of a unique transformer
+    block. This is a stack of self-attention, normalisation, 
+    fully-connected and dropout (not essential) layers.
+    """
     def __init__(self, embedding_dim, num_heads, *, fc_hidden_multiply=4, dropout=0.4):
         super().__init__()
         self.attention = SelfAttention(embedding_dim, num_heads)
@@ -68,6 +76,7 @@ class TransformerBlock(nn.Module):
 
     def forward(self, x):
         attended = self.attention(x)
+        # Skipnet is applied
         x = self.norm1(attended + x)
         x = self.droput(x)
         feedforward = self.fc(x)
@@ -77,6 +86,18 @@ class TransformerBlock(nn.Module):
 
 
 class Transformer(nn.Module):
+    """
+    Defines the full structure of a Transformer Neural Network. The steps being:
+        
+    1. Token embedding:
+    
+    2. Positional embedding
+    
+    3. Transformer blocks
+    
+    4. Conversion of output layer to probabilities
+    """
+    
     def __init__(
         self,
         embedding_dim,
@@ -86,8 +107,8 @@ class Transformer(nn.Module):
         depth,
         num_labels,
         output_dropout=0.2,
-        block_dropout=0.3,
-    ):
+        block_dropout=0.3):
+        
         super().__init__()
         self.num_tokens = num_tokens
         self.token_embedding = nn.Embedding(
@@ -120,4 +141,4 @@ class Transformer(nn.Module):
         x = self.transformer_blocks(x)
         x = x.max(dim=1)[0]
         x = self.to_probabilities(x)
-        return F.log_softmax(x, dim=1)  # todo: why log_softmax instead of softmax
+        return F.log_softmax(x, dim=1)  # log_softmax instead of softmax as adds further penalty
