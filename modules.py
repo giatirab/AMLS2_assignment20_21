@@ -60,7 +60,7 @@ class TransformerBlock(nn.Module):
     """
     Defines the forward network structure of a unique transformer
     block. This is a stack of self-attention, normalisation, 
-    fully-connected and dropout (not essential) layers.
+    fully-connected and dropout layers.
     """
     def __init__(self, embedding_dim, num_heads, *, fc_hidden_multiply=4, dropout=0.4):
         super().__init__()
@@ -89,13 +89,13 @@ class Transformer(nn.Module):
     """
     Defines the full structure of a Transformer Neural Network. The steps being:
         
-    1. Token embedding:
+    1. Token embedding: from sequence of text tokens to sequence of integers.
     
-    2. Positional embedding
+    2. Positional embedding: vectors representing the position of tokens in a tweet.
     
-    3. Transformer blocks
+    3. Transformer blocks: deep learning architecture to be trained.
     
-    4. Conversion of output layer to probabilities
+    4. Conversion of output layer to probabilities: to obtain an answer from model what is the emotion embedded in a given tweet.
     """
     
     def __init__(

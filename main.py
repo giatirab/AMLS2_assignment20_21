@@ -27,13 +27,13 @@ class TrasformerManager:
     Defines the main steps of the NLP tweet classification program, from preprocessing of input dataset, 
     to training, testing and classfication.
        
-       - PREPROCESSING: Loads a 1.6 million dataset of tweets and returns a locally saved ...
+       - PREPROCESSING: Loads a 1.6 million dataset of tweets and returns a locally saved compressed .csv files.
            
-       - TRAIN: 
+       - TRAIN: Loads preprocessed tweets dataset and initialises training of the Transformer architecture.
            
-       - TEST:
+       - TEST: Evaluates trained model performance on unseen data and returns accuracy score.
            
-       - CLASSIFY: 
+       - CLASSIFY: Preprocesses an input text tweet and returns its embedded emotion along with a confidence level.
            
     """
     def __init__(self):
@@ -260,9 +260,9 @@ class TrasformerManager:
         return test_loss, avg_rec
 
     def classify(self, tweet):
-        """Processes an input tweet of string format and pre-processes it (while storing the set of tokens
-           not in the trained vocabulary). Following this stage it classifies the sentiment expressed within 
-           the tweet. Also returns confidence attached to its classfication based on log_softmax output vector."""
+        """Processes an input tweet (text-format) and classifies the sentiment expressed within it.
+           Returns confidence attached to this classfication based on log_softmax output vector
+           and displays unknown words (ie those not in trained vocabulary)."""
         # ipdb.set_trace()
         with torch.no_grad(): # deactivate gradient calculations in the network
             self.model.eval() # set model to evaluation (test) mode
@@ -338,11 +338,12 @@ class TrasformerManager:
             for tokens in tqdm(test_tweets_tokens)
         )
         print("Extracted simplified tweets, saving...")
-        # Sovrascrivo la colonna "tweet" nei 2 dataframe con i simplified tweets
-        # Now saving the proprocessed train and test sets into .csvs
+        # With "assign" we override the "tweet" column in both 
+        # train and test datasets with simplified tweets.
         test_df = test_df.assign(tweet=simplified_test_tweets)
         train_df = train_df.assign(tweet=simplified_train_tweets)
-        # Il tabular dataset utilizza i .csv
+        # Now saving the proprocessed train and test sets into .csvs
+        # Tabular Dataset makes use of these .csv
         train_df.to_csv("data/train_dataset.csv", index=False)
         test_df.to_csv("data/test_dataset.csv", index=False)
         print("Generating vocabulary")
@@ -358,8 +359,9 @@ class TrasformerManager:
         self.label_field.build_vocab(train_dataset)
         self.text_field.build_vocab(train_dataset)
         print("Computing max length")
-        # CI costruiamo gli 2 embedding in base a questa man length quindi ci serve saperlo.
-        # Per inizializzare una matrice più grande.
+        # Before performing the token and position embeddings,
+        # we need to know what is the max_length.
+        # This is to initialise a larger matrix.
         max_tweet_len = 0
         for name in (train_dataset, test_dataset):
             for i in range(len(name)):
@@ -374,7 +376,7 @@ class TrasformerManager:
         with open("data/parameters.json", "w") as f:
             json.dump(parameters, f)
             
-        # salvare con dill library, contiene funzione lambda un come tokenizzare, pickle non riesce a salvarsi funzioni
+        # We save with dill rather than pickle as we need to store lambda function oon how to perform tokenization.
         with open("models/label_field.pt", "wb") as f:
             dill.dump(self.label_field, f)
         with open("models/text_field.pt", "wb") as f:
@@ -382,20 +384,21 @@ class TrasformerManager:
 
         print("Compressing CSVs")
         for name in ("train", "test"):
-            # aprimi il .csv che ti sei salvato sopra in formato lettura
+            # open the above saved .csv in read-only mode
             with open(f"data/{name}_dataset.csv", "rb") as f_in:
-                # aprimi (crea se non esiste) il file compresso in formato write
+                # open (or create if does not exist) the compressed 
+                # file in write mode.
                 with gzip.open(f"data/{name}_dataset.csv.gz", "wb") as f_out:
-                    # copia da .csv in .csv compresso
+                    # copy from .csv to compressed .csv
                     f_out.writelines(f_in)
-            # cancella file non compresso
+            # delete the non-compressed file
             os.remove(f"data/{name}_dataset.csv")
         print("Done preprocessing")
 
 
 def main():
-    """Runs the program using the TransformerManager class, performs pre-processing on the input dataset of tweets
-       and launches training and testing of model. After training, a list of tweets will be classified to verify the 
+    """Runs the program leveraging on the TransformerManager class, performs pre-processing on the input dataset of tweets
+       and launches training and testing of Transformer model. After training, a list of tweets will be classified to verify the 
        program is performing as expected."""
     tm = TrasformerManager()
     # tm.preprocess()
