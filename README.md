@@ -12,15 +12,17 @@ The repository include 3 python files. The main file is named "main.py" and perf
 
 2) transformermanager.py: the file contains the main class "TranformerManager" which defines the whole set of steps to solve the sentiment analysis task via its built-in methods. These include preprocessing, train, test (private function) and classify functions. The class "TransformerManager" leverages other classes defined within the modules.py file.
 
-2) modules.py: this python file describes how the main building blocks of the Tranformer architecture are defined and put together to create the final deep leaning network architecture. These are class objects named SelfAttention, TransformerBlock and Transformer.
+3) modules.py: this python file describes how the main building blocks of the Tranformer architecture are defined and put together to create the final deep leaning network architecture. These are class objects named SelfAttention, TransformerBlock and Transformer.
 
-3) data folder: this is the location where the raw dataset (1.6 million tweet downloadable from https://www.kaggle.com/kazanova/sentiment140) and compressed preprocessed datasets (.gz extension) are saved. The code will uncompress these 2 files (train_dataset.csv.gz and train_dataset.csv.gz) and automatically generate the unwrapped .csv version for both. The folder also contains the parameters.json file where input parameters can be manually edited before launching the program (learning rate, number of epochs, batch sizes, log_step, etc.).
+4) Datasets folder: this is the location where the raw dataset (1.6 million tweet downloadable from https://www.kaggle.com/kazanova/sentiment140) and compressed preprocessed datasets (.gz extension) are saved. The code will uncompress these 2 files (train_dataset.csv.gz and train_dataset.csv.gz) and automatically generate the unwrapped .csv version for both. The folder also contains the parameters.json file where input parameters can be manually edited before launching the program (learning rate, number of epochs, batch sizes, log_step, etc.).
 
-4) models folder: this is the location that the trained model are saved. The user can run the same architecture with different input parameters (either via arguments declaration in terminal or directly editing the parameters.json file). The algorithm will save down models with an "encrypted" label which is references those chosen arguments. The folder also contains the vocabularies which have been generated via the Fields object (label_fields.pt and text_fields.pt).
+5) models folder: this is the location that the trained model are saved. The user can run the same architecture with different input parameters (either via arguments declaration in terminal or directly editing the parameters.json file). The algorithm will save down models with an "encrypted" label which is references those chosen arguments. The folder also contains the vocabularies which have been generated via the Fields object (label_fields.pt and text_fields.pt).
 
-5) colab.ipynb: this jupyter file can be loaded into Google Colab and will clone the GitHub repository live and launch the program on the Colab GPU. TensorBoard is launched as well.
+6) colab.ipynb: this jupyter file can be loaded into Google Colab and will clone the GitHub repository and launch the program on the Colab GPU. A report with results is also printed.
 
-6) runs folder: TensorBoard will save files within this folder while the program runs. train loss and test loss & average recall will be saved for each epoch. This is a visualisation tool which will help understand the empirical results.
+7) runs folder: TensorBoard will save files within this folder while the program runs. train loss and test loss & average recall will be saved for each epoch. This is a visualisation tool which will help understand the empirical results.
+
+8) environment.yml: file which stores information about the local environment needed (python version, libraries, etc.) to run the program.
 
 ##########          HOW TO RUN THE PROGRAM          ##########
 
