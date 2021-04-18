@@ -71,7 +71,7 @@ class TrasformerManager:
         self.vocab = set(self.text_field.vocab.itos)
         args_dict = {key: args.__dict__[key] for key in default_args}
         args_json = json.dumps(args_dict, indent=4, sort_keys=True)
-        print(args_json)
+        print("Model parameters:\n", args_json)
         args_dict["model_name"] = (
             args_dict["model_name"]
             if args_dict["model_name"] != ""
@@ -394,4 +394,4 @@ class TrasformerManager:
                     f_out.writelines(f_in)
             # delete the non-compressed file
             os.remove(f"Datasets/{name}_dataset.csv")
-        print("Done preprocessing")
+        print("Preprocessing concluded")
