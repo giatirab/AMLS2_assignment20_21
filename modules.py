@@ -17,6 +17,7 @@ class SelfAttention(nn.Module):
         self.unify_heads = nn.Linear(heads * embedding_dim, embedding_dim)
 
     def forward(self, x):
+        """Defines the matrix operations needed for the self-attention section"""
         batch_size, tweet_length, embedding_dim = x.size()
         
         keys = self.to_keys(x).view(batch_size, tweet_length, self.heads, embedding_dim)
@@ -75,6 +76,7 @@ class TransformerBlock(nn.Module):
         self.droput = nn.Dropout(dropout)
 
     def forward(self, x):
+        """Defines the basic layer operations within the block."""
         attended = self.attention(x)
         # Skipnet is applied
         x = self.norm1(attended + x)
@@ -88,16 +90,11 @@ class TransformerBlock(nn.Module):
 class Transformer(nn.Module):
     """
     Defines the full structure of a Transformer Neural Network. The main components are:
-        
     1. Token embedding: from sequence of text tokens to sequence of integers.
-    
-    2. Positional embedding: vectors representing the position of tokens in a tweet.
-    
+    2. Positional embedding: vectors representing the position of tokens in a tweet
     3. Transformer blocks: deep learning architecture to be trained.
-    
     4. Conversion of output layer to probabilities: to obtain an answer from model what is the emotion embedded in a given tweet.
     """
-    
     def __init__(
         self,
         embedding_dim,

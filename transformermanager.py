@@ -26,15 +26,10 @@ class TrasformerManager:
     """
     Defines the main steps of the NLP tweet classification program, from preprocessing of input dataset, 
     to training, testing and classfication.
-       
-       - PREPROCESSING: Loads a 1.6 million dataset of tweets and returns locally saved compressed .csv files.
-           
-       - TRAIN: Loads preprocessed tweets dataset and initialises training of the Transformer architecture.
-           
-       - TEST: Evaluates trained model performance on unseen data and returns accuracy score.
-           
-       - CLASSIFY: Preprocesses an input text tweet and returns its embedded emotion along with a confidence level.
-           
+    1. PREPROCESSING: Loads a 1.6 million dataset of tweets and returns locally saved compressed .csv files.
+    2. TRAIN: Loads preprocessed tweets dataset and initialises training of the Transformer architecture.
+    3. TEST: Evaluates trained model performance on unseen data and returns accuracy score.
+    4. CLASSIFY: Preprocesses an input text tweet and returns its embedded emotion along with a confidence level.    
     """
     def __init__(self):
         self.tokenize = spacy.load("en_core_web_sm").tokenizer
@@ -110,6 +105,9 @@ class TrasformerManager:
             print("Model:", self.model_name, "doesn't exists.")
 
     def train(self):
+        """Reads .csv files for train and test sets and trains a Transformer architecture.
+           Performs testing by calling the private _test() method and saves results with 
+           metrics in runs folder."""
         data_path = "Datasets"
         data_file_names = ["train_dataset.csv.gz", "test_dataset.csv.gz"]
         for i, data_file_name in enumerate(data_file_names):
@@ -294,7 +292,7 @@ class TrasformerManager:
             )
 
     def preprocess(self):
-        
+        """Performs full preprocessing on raw dataset."""
         print("Preprocessing started")
         # Load raw .csv file and start basic data manipulation, including
         # train_test_split
