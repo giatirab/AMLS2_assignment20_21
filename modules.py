@@ -87,7 +87,7 @@ class TransformerBlock(nn.Module):
 
 class Transformer(nn.Module):
     """
-    Defines the full structure of a Transformer Neural Network. The steps being:
+    Defines the full structure of a Transformer Neural Network. The main components are:
         
     1. Token embedding: from sequence of text tokens to sequence of integers.
     
