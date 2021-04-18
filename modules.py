@@ -17,7 +17,7 @@ class SelfAttention(nn.Module):
         self.unify_heads = nn.Linear(heads * embedding_dim, embedding_dim)
 
     def forward(self, x):
-        """Defines the matrix operations needed for the self-attention section"""
+        """Defines the matrix operations needed for the self-attention section."""
         batch_size, tweet_length, embedding_dim = x.size()
         
         keys = self.to_keys(x).view(batch_size, tweet_length, self.heads, embedding_dim)
@@ -139,3 +139,6 @@ class Transformer(nn.Module):
         x = x.max(dim=1)[0]
         x = self.to_probabilities(x)
         return F.log_softmax(x, dim=1)  # log_softmax instead of softmax as adds further penalty
+    
+    
+    
