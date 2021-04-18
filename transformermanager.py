@@ -326,7 +326,7 @@ class TrasformerManager:
         # Going to generate the vocabulary
         counter = Counter(itertools.chain(*train_tweets_tokens))
         common_words = [item[0] for item in counter.most_common(20000)]
-        with open("Datasets/words.json") as f:
+        with open("Datasets/words.json", "w") as f:
             json.dump(common_words, f)
         common_words = set(common_words)
         #
