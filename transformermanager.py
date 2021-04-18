@@ -27,7 +27,7 @@ class TrasformerManager:
     Defines the main steps of the NLP tweet classification program, from preprocessing of input dataset, 
     to training, testing and classfication.
        
-       - PREPROCESSING: Loads a 1.6 million dataset of tweets and returns a locally saved compressed .csv files.
+       - PREPROCESSING: Loads a 1.6 million dataset of tweets and returns locally saved compressed .csv files.
            
        - TRAIN: Loads preprocessed tweets dataset and initialises training of the Transformer architecture.
            
@@ -213,7 +213,7 @@ class TrasformerManager:
             tot_loss = 0
             step_avg_loss = 0
             log_count = 0
-        print("Performing final test")
+        print("Performance on test dataset")
         test_avg_loss, test_avg_rec = self._test(-1, test_data_iter)
         test_avg_loss = round(test_avg_loss, 6)
         self.writer.add_text("results", f"test_avg_loss {test_avg_loss}")
@@ -226,7 +226,7 @@ class TrasformerManager:
         )
 
     def _test(self, epoch, data_iter):
-        """Private function to compute accuracy on unseen data."""
+        """Private function to compute accuracy on unseen test data."""
         with torch.no_grad(): # deactivate gradients computation
             self.model.eval() # set model to test mode, not train mode anymore
             tot_loss = 0.0
