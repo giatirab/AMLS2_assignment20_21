@@ -1,6 +1,7 @@
 # README
 
 PROJECT NAME: "SENTIMENT ANALYSIS WITH TWEETS"
+URL: https://www.kaggle.com/kazanova/sentiment140
 
 The project aims at solving a Kaggle competition using Natural Language Processing tools. The task is to classify a tweet's embedded emotion as either positive or negative. 
 
